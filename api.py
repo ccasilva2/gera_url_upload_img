@@ -30,8 +30,37 @@ def login():
     return jsonify(access_token=access_token), 200
 
 # Endpoint protegido que requer um token válidos
-@app.route('/download/<filename>')
+@app.route('/downloadx/<filename>')
 @jwt_required()
+def download_filex(filename):
+    try:
+        print(f"Usuário autenticado está solicitando o download do arquivo: {filename}")
+
+        # Caminho completo para o arquivo
+        caminho_completo = os.path.join(DIRETORIO_ARQUIVOS, filename)
+        print(f"Caminho completo do arquivo: {caminho_completo}")
+
+        # Normaliza o caminho do arquivo
+        caminho_completo = os.path.normpath(caminho_completo)
+
+        # Verifica se o caminho está dentro do diretório permitido
+        if not caminho_completo.startswith(DIRETORIO_ARQUIVOS):
+            print("Tentativa de acesso a caminho inválido.")
+            abort(400, "Caminho inválido.")
+
+        # Verifica se o arquivo existe
+        if not os.path.isfile(caminho_completo):
+            print("Arquivo não encontrado.")
+            abort(404, "Arquivo não encontrado.")
+
+        print(f"Arquivo encontrado. Enviando {filename} para download.")
+        return send_from_directory(DIRETORIO_ARQUIVOS, filename, as_attachment=True)
+    except Exception as e:
+        print(f"Ocorreu um erro: {e}")
+        abort(500, f"Ocorreu um erro: {e}")
+
+# Endpoint protegido que requer um token válidos
+@app.route('/download/<filename>')
 def download_file(filename):
     try:
         print(f"Usuário autenticado está solicitando o download do arquivo: {filename}")
